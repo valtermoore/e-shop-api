@@ -6,7 +6,7 @@
   "scripts": {
     "serve-mongodb": "C:/Users/VM/mongodb/bin/mongod.exe --dbpath=C:/Users/VM/mongodb-data",
     "dev": "env-cmd -f ./config/dev.env nodemon src/index.js",
-    "start": "src/index.js"
+    "start": "node src/index.js"
   },
   "author": "",
   "license": "ISC",
