@@ -99,6 +99,22 @@ router.get('/products', async (req, res) => {
     }
 });
 
+//READ/GET A PRODUCT BY ID
+router.get('/products/:id', async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            throw new Error('Product not found');
+        }
+
+        // res.set('Content-Type', 'image/png');
+        res.send(product);
+    } catch (e) {
+        res.status(404).send(e.message)
+    }
+});
+
 // router.get('/products/:key', async (req, res) => {
 //     const key = req.params.key;
 //     console.log(key)
@@ -126,21 +142,8 @@ router.get('/products/brands', async (req, res) => {
     }
 })
 
-//READ/GET A PRODUCT BY ID
-// router.get('/products/:id', async (req, res) => {
-//     try {
-//         const product = await Product.findById(req.params.id);
 
-//         if (!product) {
-//             throw new Error('Product not found');
-//         }
 
-//         // res.set('Content-Type', 'image/png');
-//         res.send(product);
-//     } catch (e) {
-//         res.status(404).send(e.message)
-//     }
-// });
 
 //READ/GET FEATURED PRODUCTS
 router.get('/products/featured/:limit', async (req, res) => {
@@ -202,7 +205,7 @@ router.patch('/products/images/:id', auth, uploads.array('images', 3), async (re
 });
 
 //UPDATE PRODUCT
-router.patch('/products/view/:id', auth, async (req, res) => {
+router.patch('/products/:id', auth, async (req, res) => {
     //checks if the user is admin
     if (!req.user.isAdmin) {
         return res.send('You are not authorized!');
