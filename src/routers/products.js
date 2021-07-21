@@ -9,6 +9,9 @@ const uploads = require('../middleware/multer');//multer middleware for file upl
 const sharp = require('sharp');
 const auth = require('../middleware/auth');//auth middleware for authentication
 
+//to upload the image to s3 bucket
+const { uploadFile, getFileAws } = require('../aws-s3/s3');
+
 //CREATE PRODUCT
 router.post('/products', uploads.single('image'), async (req, res) => {
 
@@ -28,6 +31,8 @@ router.post('/products', uploads.single('image'), async (req, res) => {
             return res.send('You must upload an image')
         }
 
+        const bucketRes = await uploadFile(req.file)
+        console.log(bucketRes)
         const fileName = req.file.filename; //await sharp(req.file.buffer).jpeg().toBuffer(); 
         //console.log(fileName)
         const basePath = `${req.protocol}://${req.get('host')}/uploads/`;
@@ -41,9 +46,9 @@ router.post('/products', uploads.single('image'), async (req, res) => {
             description: req.body.description,
             countInStock: req.body.countInStock,
             isFeatured: req.body.isFeatured,
-            image: `${basePath}${fileName}`, // http://localhost:3000/public/upload/image-1234
+            image: `${bucketRes.Location}`, // http://localhost:3000/public/upload/image-1234
         });
-
+        // console.log(req.file)
         await product.save();
         res.status(200).send({ message: 'Product created' });
     } catch (e) {
@@ -56,7 +61,7 @@ router.get('/products', async (req, res) => {
 
     try {
 
-        //const category = await Category.findById(req.query.categories) - //tambem serve mas nao da para multiplas categorias, so uma de cada vez
+        // const category = await Category.findById(req.query.categories) //tambem serve mas nao da para multiplas categorias, so uma de cada vez
         let filter = {}
 
         if (req.query) {
@@ -66,8 +71,8 @@ router.get('/products', async (req, res) => {
                 brand: req.query.brand
             }
         }
-        // //if there's no brand it will accept the price and category
-        if(!req.query.brand) {
+        // // //if there's no brand it will accept the price and category
+        if (!req.query.brand) {
             filter = {
                 category: req.query.categories.split(','), //to allow filter various categories separated by ',' on the url query
                 price: { $gte: 0, $lte: req.query.price }, //filters the prices from 0 to a certain number
@@ -75,20 +80,36 @@ router.get('/products', async (req, res) => {
             }
         }
 
+
         //gets all products or by categorie
         const product = await Product.find(filter).populate('category');
+
         if (!product) {
             throw new Error()
         }
+
         //counts the documents from the filtered category/categories
         const productCount = await Product.countDocuments(product, (count) => count);
 
+
         //res.set('Content-Type', 'image/png');
-        res.send({product, productCount});
+        res.send({ product, productCount });
     } catch (e) {
         res.status(500).send(e.message)
     }
 });
+
+router.get('/products/:key', async (req, res) => {
+    const key = req.params.key;
+    console.log(key)
+
+    const readStream = getFileAws(key)
+    console.log(readStream)
+
+    //will convert the stream to a image file
+    readStream.pipe(res)
+    // res.send(readStream)
+})
 
 router.get('/products/brands', async (req, res) => {
     try {
@@ -106,20 +127,20 @@ router.get('/products/brands', async (req, res) => {
 })
 
 //READ/GET A PRODUCT BY ID
-router.get('/products/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
+// router.get('/products/:id', async (req, res) => {
+//     try {
+//         const product = await Product.findById(req.params.id);
 
-        if (!product) {
-            throw new Error('Product not found');
-        }
+//         if (!product) {
+//             throw new Error('Product not found');
+//         }
 
-        // res.set('Content-Type', 'image/png');
-        res.send(product);
-    } catch (e) {
-        res.status(404).send(e.message)
-    }
-});
+//         // res.set('Content-Type', 'image/png');
+//         res.send(product);
+//     } catch (e) {
+//         res.status(404).send(e.message)
+//     }
+// });
 
 //READ/GET FEATURED PRODUCTS
 router.get('/products/featured/:limit', async (req, res) => {
