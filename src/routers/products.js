@@ -99,17 +99,17 @@ router.get('/products', async (req, res) => {
     }
 });
 
-router.get('/products/:key', async (req, res) => {
-    const key = req.params.key;
-    console.log(key)
+// router.get('/products/:key', async (req, res) => {
+//     const key = req.params.key;
+//     console.log(key)
 
-    const readStream = getFileAws(key)
-    console.log(readStream)
+//     const readStream = getFileAws(key)
+//     console.log(readStream)
 
-    //will convert the stream to a image file
-    readStream.pipe(res)
-    // res.send(readStream)
-})
+//     //will convert the stream to a image file
+//     readStream.pipe(res)
+//     // res.send(readStream)
+// })
 
 router.get('/products/brands', async (req, res) => {
     try {
@@ -202,7 +202,7 @@ router.patch('/products/images/:id', auth, uploads.array('images', 3), async (re
 });
 
 //UPDATE PRODUCT
-router.patch('/products/:id', auth, async (req, res) => {
+router.patch('/products/view/:id', auth, async (req, res) => {
     //checks if the user is admin
     if (!req.user.isAdmin) {
         return res.send('You are not authorized!');
