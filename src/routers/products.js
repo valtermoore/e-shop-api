@@ -33,10 +33,10 @@ router.post('/products', uploads.single('image'), async (req, res) => {
 
         const bucketRes = await uploadFile(req.file)
         console.log(bucketRes)
-        const fileName = req.file.filename; //await sharp(req.file.buffer).jpeg().toBuffer(); 
-        //console.log(fileName)
-        const basePath = `${req.protocol}://${req.get('host')}/uploads/`;
-        //console.log(basePath)
+        // const fileName = req.file.filename; //await sharp(req.file.buffer).jpeg().toBuffer(); 
+        // //console.log(fileName)
+        // const basePath = `${req.protocol}://${req.get('host')}/uploads/`;
+        // //console.log(basePath)
         const product = new Product({
             ...req.body,
             name: req.body.name,
@@ -46,7 +46,7 @@ router.post('/products', uploads.single('image'), async (req, res) => {
             description: req.body.description,
             countInStock: req.body.countInStock,
             isFeatured: req.body.isFeatured,
-            image: `${bucketRes.Location}`, // http://localhost:3000/public/upload/image-1234
+            image: `${bucketRes.Location}`, 
         });
         // console.log(req.file)
         await product.save();

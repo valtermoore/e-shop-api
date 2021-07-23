@@ -4,18 +4,23 @@ const router = new express.Router();
 const Category = require('../models/category');
 
 const uploads = require('../middleware/multer');
-//
+const uploadFile = require('../aws-s3/s3');
+
+
+//CREATE CATEGORY
 router.post('/category', uploads.single('image'), async (req, res) => {
 
-    const fileName = req.file.filename; //the file from client side
+    // const fileName = req.file.filename; //the file from client side
 
-    const basePath = `${req.protocol}://${req.get('host')}/uploads/`;
+    // const basePath = `${req.protocol}://${req.get('host')}/uploads/`;
+
+    const bucketRes = await uploadFile(req.file);
 
     const category = new Category({
         name: req.body.name,
         icon: req.body.icon,
         color: req.body.color,
-        image: `${basePath}${fileName}` // http://localhost:3000/uploads/image-1234
+        image: bucketRes.Location // http://localhost:3000/uploads/image-1234
     });
 
     if (!category) {
